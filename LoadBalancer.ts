@@ -25,19 +25,18 @@ class Provider {
 ////////////////////LoadBalancer CLASS///////////////////////////////////////////////
 //LoadBalancer Class Start
 class LoadBalancer {
-  static instance: LoadBalancer
+  private static instance: LoadBalancer
   private providerList: Array<[Provider, number, number]>  //List of tuples of [Provider, state -active(1) or inactve(0), #requests (limited to Y)]
   private heartbeatTimerID: number
 
-  firstProvider: number           //Provider-list head index
-  lastProvider: number            //Provider-list tail index
-  currentProvider: number         //Provider-list pointer
-  countProviders: number          //count of active Provider list items
+  private firstProvider: number           //Provider-list head index
+  private lastProvider: number            //Provider-list tail index
+  private currentProvider: number         //Provider-list pointer
 
   private constructor() {
     this.providerList = new Array([new Provider(), 1, 0])                   //a load balancer will have atleast one active provider 
-    this.countProviders = this.currentProvider = 1                          //Provider-list pointer always holds a value between 1 and maxProviders
-    this.lastProvider = this.firstProvider = 0                              //initiate indices
+    this.currentProvider = 1                                                //Provider-list pointer always holds a value between 1 and maxProviders
+    this.lastProvider = this.firstProvider = 0                              //initiate indices
     this.heartbeatTimerID = setInterval(this.heartbeatChecker, X * 1000)
   }
 
@@ -79,21 +78,21 @@ class LoadBalancer {
   }
 
   private pushProvider = async (provider: Provider) => {
-    if (this.countProviders != MAX_PROVIDERS) {
-      this.lastProvider = this.countProviders++
+    if (this.providerList.length != MAX_PROVIDERS) {
       this.providerList.push([provider, 1, 0]) //add to list
+      this.lastProvider = this.providerList.length
     }
   }
 
   public registerProvider = async (provider: Provider): Promise<number> => {
-    if (this.countProviders == MAX_PROVIDERS) {
+    if (this.providerList.length == MAX_PROVIDERS) {
       return 0 // no more Providers may be registered
     }
     await this.pushProvider(provider)
     return 1
   }
 
-  get(): string {
+  public get(): string {
     let option: number = Math.round(Math.random()) % 2       //Switch randomly between random invocation and round robin invocation
     let retStr: string = ""
 
@@ -119,7 +118,7 @@ class LoadBalancer {
 
   private getRandomProvider(): string {
 
-    this.currentProvider = (0 + Math.random() * this.countProviders) + 1             //generate random number within the count of active providers
+    this.currentProvider = (0 + Math.random() * this.providerList.length) + 1             //generate random number within the count of active providers
     return this.providerList[Math.floor(this.currentProvider) - 1][0].get()
   }
 

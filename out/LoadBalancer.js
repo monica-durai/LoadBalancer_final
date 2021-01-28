@@ -74,9 +74,9 @@ var LoadBalancer = /** @class */ (function () {
         }); };
         this.pushProvider = function (provider) { return __awaiter(_this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                if (this.countProviders != MAX_PROVIDERS) {
-                    this.lastProvider = this.countProviders++;
+                if (this.providerList.length != MAX_PROVIDERS) {
                     this.providerList.push([provider, 1, 0]); //add to list
+                    this.lastProvider = this.providerList.length;
                 }
                 return [2 /*return*/];
             });
@@ -85,7 +85,7 @@ var LoadBalancer = /** @class */ (function () {
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        if (this.countProviders == MAX_PROVIDERS) {
+                        if (this.providerList.length == MAX_PROVIDERS) {
                             return [2 /*return*/, 0]; // no more Providers may be registered
                         }
                         return [4 /*yield*/, this.pushProvider(provider)];
@@ -138,8 +138,8 @@ var LoadBalancer = /** @class */ (function () {
             });
         }); };
         this.providerList = new Array([new Provider(), 1, 0]); //a load balancer will have atleast one active provider 
-        this.countProviders = this.currentProvider = 1; //Provider-list pointer always holds a value between 1 and maxProviders
-        this.lastProvider = this.firstProvider = 0; //initiate indices
+        this.currentProvider = 1; //Provider-list pointer always holds a value between 1 and maxProviders
+        this.lastProvider = this.firstProvider = 0; //initiate indices
         this.heartbeatTimerID = setInterval(this.heartbeatChecker, X * 1000);
     }
     LoadBalancer.getInstance = function () {
@@ -166,7 +166,7 @@ var LoadBalancer = /** @class */ (function () {
         return retStr;
     };
     LoadBalancer.prototype.getRandomProvider = function () {
-        this.currentProvider = (0 + Math.random() * this.countProviders) + 1; //generate random number within the count of active providers
+        this.currentProvider = (0 + Math.random() * this.providerList.length) + 1; //generate random number within the count of active providers
         return this.providerList[Math.floor(this.currentProvider) - 1][0].get();
     };
     LoadBalancer.prototype.getProviderList = function () {
